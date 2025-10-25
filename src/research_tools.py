@@ -44,6 +44,7 @@ def _build_session(
     user_agent: str = "LF-ADP-Agent/1.0 (mailto:your.email@example.com)",
 ) -> requests.Session:
     s = requests.Session()
+
     s.headers.update(
         {
             "User-Agent": user_agent,
@@ -62,7 +63,7 @@ def _build_session(
         raise_on_redirect=False,
         raise_on_status=False,
     )
-    adapter = HTTPAdapter(max_retries=retry, pool_connections=10, pool_maxsize=20)
+    adapter = HTTPAdapter(max_retries= retry, pool_connections=10, pool_maxsize=20)
     s.mount("https://", adapter)
     s.mount("http://", adapter)
     return s
@@ -72,6 +73,7 @@ session = _build_session()
 
 
 # ----- Utilities -----
+# just to make sure that it is of pdf url
 def ensure_pdf_url(abs_or_pdf_url: str) -> str:
     url = abs_or_pdf_url.strip().replace("http://", "https://")
     if "/pdf/" in url and url.endswith(".pdf"):
@@ -81,7 +83,7 @@ def ensure_pdf_url(abs_or_pdf_url: str) -> str:
         url += ".pdf"
     return url
 
-
+# extension
 def _safe_filename(name: str) -> str:
     import re
 
@@ -90,15 +92,18 @@ def _safe_filename(name: str) -> str:
         name += ".pdf"
     return name
 
-
+#when doing web pages scraping
 def clean_text(s: str) -> str:
+    #remove soft hyphens and line breaks
     s = re.sub(r"-\n", "", s)  # "transfor-\nmers" -> "transformers"
+    
     s = re.sub(r"\r\n|\r", "\n", s)  # normaliza saltos
     s = re.sub(r"[ \t]+", " ", s)  # colapsa espacios
+    # limit vertical white spaces
     s = re.sub(r"\n{3,}", "\n\n", s)  # no más de 1 línea en blanco seguida
     return s.strip()
 
-
+# 
 def fetch_pdf_bytes(pdf_url: str, timeout: int = 90) -> bytes:
     r = session.get(pdf_url, timeout=timeout, allow_redirects=True)
     r.raise_for_status()
